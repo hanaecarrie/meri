@@ -1,0 +1,4 @@
+*.pkl
+*.pyc
+*.swp
+demo/.ipynb_checkpoints/*
