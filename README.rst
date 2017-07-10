@@ -7,13 +7,16 @@
 .. _PyPi: https://badge.fury.io/py/meri
 
 ==================================================
-MERI (Manager d'Etudes de Reconstruction d'Image)
+MERI (Manager d'Etudes de Reconstruction d'Images)
 ==================================================
 
-[MERI] Manager d'Etudes de Reconstruction d'Image
+[MERI] Manager d'Etudes de Reconstruction d'Images
 
 MERI is a package related to parameter/outputs management and image error
-measurement in a context of MRI. This package mainly provide:
- - a grid searching function
- - a reporting class
- - a error measurement module
+measurement in a context of MRI. This package mainly provide: 
+
+- a grid searching function
+- a reporting class
+- a error measurement module
+
+The package was first design to run piSAP studies, more information on `PISAP <https://github.com/neurospin/pisap>`_.

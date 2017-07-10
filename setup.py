@@ -1,13 +1,13 @@
 from setuptools import setup
 
 descr =  """
-Manager d'Etudes de Reconstruction d'Image (MERI) is a package related to
+Manager d'Etudes de Reconstruction d'Images (MERI) is a package related to
 parameter/outputs management and image error measurement in a context of
 MRI research.
 """
 
 long_descr = """
-Manager d'Etudes de Reconstruction d'Image (MERI) is a package related to
+Manager d'Etudes de Reconstruction d'Images (MERI) is a package related to
 parameter/outputs management and image error measurement in a context of MRI.
 This package mainly provide: a grid searching function, a reporting class and a
 error measurement module.
