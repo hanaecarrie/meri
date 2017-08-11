@@ -263,45 +263,45 @@ class ReportGridSearch(object):
         return [key for key, value in self.param_grid.iteritems()
                 if len(value) > 1]
 
-    def _get_studies_filter(self, filter_):
+    def _get_studies_filter(self, selector):
         """ Private helper that return index list based on filter in kwargs.
 
         Parameters:
         -----------
-        filter_:
+        selector:
 
         Return:
         -------
-        filter_: list of int,
-            mask to consider only the studies which the index is in filter_ .
+        index_subset: list of int,
+            mask to consider only the studies which the index is in selector .
         """
-        if filter_ is None:
+        if selector is None:
             idx_filter = range(len(self.recons_im))
-        elif isinstance(filter_, list):
-            idx_filter = filter_
-        elif isinstance(filter_, dict):
-            # sanitize filter_ dict
-            for key, value in filter_.iteritems():
+        elif isinstance(selector, list):
+            idx_filter = selector
+        elif isinstance(selector, dict):
+            # sanitize selector dict
+            for key, value in selector.iteritems():
                 if not isinstance(value, list):
-                    filter_[key] = [value]
+                    selector[key] = [value]
             idx_filter = []
             for idx, kwargs in enumerate(self.list_kwargs):
                 drop = False # if True will ignore this study
                 # loop to check if the study match the new restricted
                 # parameters grid
                 for key, value in kwargs.iteritems():
-                    if (key in self.fixed_params) or (key not in filter_):
+                    if (key in self.fixed_params) or (key not in selector):
                         continue
-                    if value not in filter_[key]:
+                    if value not in selector[key]:
                         drop = True
                 if not drop:
                     idx_filter.append(idx)
         else:
-            raise ValueError("filter_ type not understood, "
-                             "got {0}".format(type(filter_)))
+            raise ValueError("selector type not understood, "
+                             "got {0}".format(type(selector)))
         return idx_filter
 
-    def _all_score(self, metric, filter_):
+    def _all_score(self, metric, index_subset):
         """ Private helper that return all the score for the given metric.
 
         Parameters:
@@ -310,8 +310,8 @@ class ReportGridSearch(object):
             the exact metric function name, example: 'compare_mse'
             from metric or the metric function itself.
 
-        filter_: list of int,
-            mask to consider only the studies which the index is in filter_ .
+        index_subset: list of int,
+            mask to consider only the studies which the index is in index_subset .
 
         Return:
         ------
@@ -319,17 +319,17 @@ class ReportGridSearch(object):
             all the measure error for the given metric, respect the order same
             order than list_kwargs, recons_im and errs attributes.
         """
-        if filter_ is None:
-            filter_ = range(len(self.recons_im))
+        if index_subset is None:
+            index_subset = range(len(self.recons_im))
         if callable(metric):
             metric = metric.func_name
         return np.array([(errs[metric], idx) for idx, errs in enumerate(self.errs)
-                         if idx in filter_])
+                         if idx in index_subset])
 
     ####
     ## best getter methods
 
-    def best_image(self, metric, filter_=None):
+    def best_image(self, metric, selector=None):
         """ Return the best reconstructed image for the given metric.
 
         Parameters:
@@ -338,18 +338,19 @@ class ReportGridSearch(object):
             the exact metric function name, example: 'compare_mse'
             from metric or the metric function itself.
 
-        filter_:
+        selector: dict,
+            params_grid, where the fixed and floatting parameters are specify.
 
         Return:
         -------
         best_image: np.ndarray,
             the best reconstructed image for the given metric.
         """
-        filter_ = self._get_studies_filter(filter_)
-        best_idx = self.best_index(metric, filter_)
+        index_subset = self._get_studies_filter(selector)
+        best_idx = self.best_index(metric, index_subset)
         return self.recons_im[best_idx]
 
-    def best_score(self, metric, filter_=None):
+    def best_score(self, metric, selector=None):
         """ Return the best score for the given metric.
 
         Parameters:
@@ -358,20 +359,21 @@ class ReportGridSearch(object):
             the exact metric function name, example: 'compare_mse'
             from metric or the metric function itself.
 
-        filter_:
+        selector: dict,
+            params_grid, where the fixed and floatting parameters are specify.
 
         Return:
         -------
         best_score: float,
             the best score for the given metric.
         """
-        filter_ = self._get_studies_filter(filter_)
-        best_idx = self.best_index(metric, filter_)
+        index_subset = self._get_studies_filter(selector)
+        best_idx = self.best_index(metric, index_subset)
         if callable(metric):
             metric = metric.func_name
         return self.errs[best_idx][metric]
 
-    def best_params(self, metric, filter_=None):
+    def best_params(self, metric, selector=None):
         """ Return the best set of parameters for the given metric.
 
         Parameters:
@@ -380,18 +382,19 @@ class ReportGridSearch(object):
             the exact metric function name, example: 'compare_mse'
             from metric or the metric function itself.
 
-        filter_:
+        selector: dict,
+            params_grid, where the fixed and floatting parameters are specify.
 
         Return:
         -------
         best_params: dictionary,
             the best params for the given metric.
         """
-        filter_ = self._get_studies_filter(filter_)
-        best_idx = self.best_index(metric, filter_)
+        index_subset = self._get_studies_filter(selector)
+        best_idx = self.best_index(metric, index_subset)
         return self.list_kwargs[best_idx]
 
-    def best_index(self, metric, filter_=None):
+    def best_index(self, metric, selector=None):
         """ Return the index of the best set of parameters for the given metric.
 
         Parameters:
@@ -400,7 +403,8 @@ class ReportGridSearch(object):
             the exact metric function name, example: 'compare_mse'
             from metric or the metric function itself.
 
-        filter_:
+        selector: dict,
+            params_grid, where the fixed and floatting parameters are specify.
 
         Return:
         -------
@@ -409,8 +413,9 @@ class ReportGridSearch(object):
         """
         if callable(metric):
             metric = metric.func_name
-        filter_ = self._get_studies_filter(filter_)
-        scores_ = self._all_score(metric, filter_) # the subset of desired scores
+        index_subset = self._get_studies_filter(selector)
+        # the subset of desired scores
+        scores_ = self._all_score(metric, index_subset)
         if self.metrics_direction[metric]:
             return int(scores_[np.argmin(scores_[:,0]), 1])
         else:
@@ -419,7 +424,7 @@ class ReportGridSearch(object):
     ####
     ## diff methods
 
-    def diffref_best_image(self, metric, filter_=None):
+    def diffref_best_image(self, metric, selector=None):
         """ Return the difference between the reference image and the
         best image for the given metric
 
@@ -429,7 +434,8 @@ class ReportGridSearch(object):
             the exact metric function name, example: 'compare_mse'
             from metric or the metric function itself.
 
-        filter_:
+        selector: dict,
+            params_grid, where the fixed and floatting parameters are specify.
 
         Return:
         -------
@@ -437,7 +443,7 @@ class ReportGridSearch(object):
             the difference, recons_im[idx] - im_ref, between the reference
             image and the best image for the given metric.
         """
-        return self.best_image(metric, filter_) - self.im_ref
+        return self.best_image(metric, selector) - self.im_ref
 
     def diffref_image(self, idx):
         """ Return the difference between the reference image and the
