@@ -323,7 +323,8 @@ class ReportGridSearch(object):
             filter_ = range(len(self.recons_im))
         if callable(metric):
             metric = metric.func_name
-        return np.array([errs[metric] for idx, errs in enumerate(self.errs) if idx in filter_])
+        return np.array([(errs[metric], idx) for idx, errs in enumerate(self.errs)
+                         if idx in filter_])
 
     ####
     ## best getter methods
@@ -366,7 +367,9 @@ class ReportGridSearch(object):
         """
         filter_ = self._get_studies_filter(filter_)
         best_idx = self.best_index(metric, filter_)
-        return self._all_score(metric, filter_)[best_idx]
+        if callable(metric):
+            metric = metric.func_name
+        return self.errs[best_idx][metric]
 
     def best_params(self, metric, filter_=None):
         """ Return the best set of parameters for the given metric.
@@ -407,10 +410,11 @@ class ReportGridSearch(object):
         if callable(metric):
             metric = metric.func_name
         filter_ = self._get_studies_filter(filter_)
+        scores_ = self._all_score(metric, filter_) # the subset of desired scores
         if self.metrics_direction[metric]:
-            return np.argmin(self._all_score(metric, filter_))
+            return int(scores_[np.argmin(scores_[:,0]), 1])
         else:
-            return np.argmax(self._all_score(metric, filter_))
+            return int(scores_[np.argmax(scores_[:,0]), 1])
 
     ####
     ## diff methods
