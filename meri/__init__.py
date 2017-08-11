@@ -419,7 +419,7 @@ class ReportGridSearch(object):
     ####
     ## diff methods
 
-    def diffref_best_image(self, metric):
+    def diffref_best_image(self, metric, filter_=None):
         """ Return the difference between the reference image and the
         best image for the given metric
 
@@ -429,13 +429,15 @@ class ReportGridSearch(object):
             the exact metric function name, example: 'compare_mse'
             from metric or the metric function itself.
 
+        filter_:
+
         Return:
         -------
         diff: np.ndarray,
             the difference, recons_im[idx] - im_ref, between the reference
             image and the best image for the given metric.
         """
-        return self.best_image(metric) - self.im_ref
+        return self.best_image(metric, filter_) - self.im_ref
 
     def diffref_image(self, idx):
         """ Return the difference between the reference image and the
