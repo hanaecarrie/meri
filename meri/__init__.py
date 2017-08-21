@@ -14,6 +14,7 @@ from joblib import Parallel, delayed
 
 try:
     import pisap
+
     def wrapper_isap(recons_func, **kwargs):
         """ Helper to parallelize the reconstruction.
         """
@@ -25,7 +26,26 @@ try:
         else:
             raise ValueError(
                 "res of 'recons_func' not understood: got {0}".format(type(res)))
+
+    def wrap_isap_condat_im_metrics_func(metrics_funcs, img, ref):
+        """ Helper to parallelize the metrics computations for tuple
+        (pisap.base.image.Image, np.ndarray) grid_search ouputs.
+        """
+        if type(img) == tuple:
+            sanytize_img = img[0].data
+        return _wrap_im_metrics_func(metrics_funcs, sanytize_img, ref)
+
+    def wrap_isap_fista_im_metrics_func(metrics_funcs, img, ref):
+        """ Helper to parallelize the metrics computations for tuple
+        (pisap.base.image.Image, np.ndarray) grid_search ouputs.
+        """
+        if isinstance(img, pisap.base.image.Image):
+            sanytize_img = img.data
+        return _wrap_im_metrics_func(metrics_funcs, sanytize_img, ref)
+
 except ImportError:
+    print("Importing pisap failed: wrapper_isap and wrap_isap_im_metrics_func"
+          "not defined")
     pass
 
 
@@ -137,7 +157,8 @@ def grid_search(func, param_grid, wrapper=None, n_jobs=1, verbose=0):
     return list_kwargs, res
 
 
-def compute_multiple_metrics(imgs, im_ref, metrics_funcs, n_jobs=1, verbose=0):
+def compute_multiple_metrics(imgs, im_ref, metrics_funcs, _wrapper=None,
+                             n_jobs=1, verbose=0):
     """
     Parameters:
     ----------
@@ -158,14 +179,20 @@ def compute_multiple_metrics(imgs, im_ref, metrics_funcs, n_jobs=1, verbose=0):
             which is useful for debugging. For n_jobs below -1,
             (n_cpus + 1 + n_jobs) are used. Thus for n_jobs = -2,
             all CPUs but one are used.
+        _wrapper: function, (default: None)
+            Handle the call of func if some pre-process or post-process
+            should be done. `_wrapper` has a specific API:
+            `_wrapper(metrics_funcs, im.data, im_ref)`
         verbose: int (default: 0),
             The verbosity level: if non zero, progress messages are printed.
             Above 50, the output is sent to stdout. The frequency of the
             messages increases with the verbosity level. If it more than 10,
             all iterations are reported.
     """
+    if _wrapper is None:
+        _wrapper = _wrap_im_metrics_func
     errs = Parallel(n_jobs=n_jobs, verbose=verbose)(
-           delayed(_wrap_im_metrics_func)(metrics_funcs, im.data, im_ref)
+           delayed(_wrapper)(metrics_funcs, im, im_ref)
            for im in imgs)
     return errs
 
