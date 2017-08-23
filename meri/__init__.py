@@ -444,9 +444,9 @@ class ReportGridSearch(object):
         # the subset of desired scores
         scores_ = self._all_score(metric, index_subset)
         if self.metrics_direction[metric]:
-            return int(scores_[np.argmin(scores_[:,0]), 1])
+            return int(scores_[np.nanargmin(scores_[:,0]), 1])
         else:
-            return int(scores_[np.argmax(scores_[:,0]), 1])
+            return int(scores_[np.nanargmax(scores_[:,0]), 1])
 
     ####
     ## diff methods
