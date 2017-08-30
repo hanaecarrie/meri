@@ -4,6 +4,7 @@ import numpy as np
 from sklearn.cluster import k_means
 from scipy.ndimage.morphology import binary_closing
 from skimage.measure import compare_ssim as _compare_ssim
+import matplotlib.pyplot as plt
 
 
 def _min_max_normalize(img):
@@ -23,7 +24,7 @@ def _min_max_normalize(img):
     return (img - min_img) / (max_img - min_img)
 
 
-def compute_ssim(test, ref, mask="auto"):
+def compute_ssim(test, ref, mask="auto", disp=False):
     """ Return SSIM
 
     Parameters:
@@ -33,6 +34,8 @@ def compute_ssim(test, ref, mask="auto"):
     test: np.ndarray, the tested image
 
     mask: np.ndarray, the mask for the ROI
+
+    disp: bool (default False), if True display the mask.
 
     Notes:
     ------
@@ -58,6 +61,9 @@ def compute_ssim(test, ref, mask="auto"):
             mask = np.abs(mask-1)
         mask = mask.reshape(*ref.shape)
         mask = binary_closing(mask, np.ones((5, 5)), iterations=4).astype('int')
+    if disp:
+        plt.matshow(0.5 * (mask + ref), cmap='gray')
+        plt.show()
     return (mask * ssim).sum() / mask.sum()
 
 
