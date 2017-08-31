@@ -88,7 +88,7 @@ def compute_snr(test, ref):
     ref = np.abs(ref).astype('float64')
     test = _min_max_normalize(test)
     ref = _min_max_normalize(ref)
-    num = np.mean(np.square(ref))
+    num = np.mean(np.square(test))
     deno = compute_mse(test, ref)
     return 10.0 * np.log10(num / deno)
 
@@ -114,7 +114,7 @@ def compute_psnr(test, ref):
     ref = np.abs(ref).astype('float64')
     test = _min_max_normalize(test)
     ref = _min_max_normalize(ref)
-    num = np.max(np.abs(ref))
+    num = np.max(np.abs(test))
     deno = compute_mse(test, ref)
     return 10.0 * np.log10(num / deno)
 
